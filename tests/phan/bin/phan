@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PHP="php"
+
+if hash php7.1 2>/dev/null; then
+	export PHP="php7.1"
+elif hash php7.0 2>/dev/null; then
+	export PHP="php7.0"
+fi
+
+PHP_VERSION=`$PHP --version | head -n1 | cut -f2 -d" " | cut -c 1`
+
+if [ $(echo "$PHP_VERSION < 7" | bc) -eq 1 ]; then
+	echo "PHP >= 7.0. is required to run Phan. No such PHP version installed found."
+	exit 1
+fi
+
+if [ ! -f "$PHAN" ]; then
+	# If no PHAN is specified then try to get location from PATH
+	PHAN="$(which phan)"
+	if [ ! -f "$PHAN" ]; then
+		echo "The environment variable PHAN must point to the 'phan' file"
+		echo "in a checkout of https://github.com/etsy/phan.git,"
+		echo "or phan must be included in your PATH."
+		exit 1
+	fi
+fi
+
+$PHP $PHAN --config-file ./tests/phan/config.php
